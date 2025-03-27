@@ -6,8 +6,8 @@ use App\Enum\EmployementStatus;
 
 class Employee{
     private $id;
-    private $username;
-    private $password;
+    public string $username; //Dijadikan public agar bisa diakses dengan mudah
+    public string $password;
     private $employeeId;
     private $employeeName;
     private $dateOfBirth;
