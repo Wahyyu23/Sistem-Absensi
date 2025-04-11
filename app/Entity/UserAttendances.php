@@ -1,5 +1,6 @@
 <?php
 
+namespace App\Entity;
 use PhpParser\Node\Expr\FuncCall;
 class UserAttendances{
     private $employeeId;

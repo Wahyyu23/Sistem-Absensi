@@ -1,4 +1,6 @@
 <?php
+
+namespace App\Enum;
 enum AttendanceStatus{
     case Hadir = 'Hadir';
     case Izin = 'Izin';

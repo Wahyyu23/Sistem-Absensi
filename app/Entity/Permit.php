@@ -1,4 +1,5 @@
 <?php
+namespace App\Entity;
 require_once 'app/Enum/AttendanceStatus.php';
 require_once 'app/Enum/Approval.php';
 

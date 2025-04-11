@@ -1,5 +1,6 @@
 <?php
 
+namespace App\Providers;
 use App\Entity\Shift;
 use Illuminate\Support\ServiceProvider;
 

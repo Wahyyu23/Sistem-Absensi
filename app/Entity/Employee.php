@@ -1,5 +1,5 @@
 <?php
-
+namespace App\Entity;
 use PhpParser\Node\VariadicPlaceholder;
 use Ramsey\Uuid\Type\Integer;
 use App\Enum\EmployementStatus;
