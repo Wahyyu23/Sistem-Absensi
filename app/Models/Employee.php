@@ -8,8 +8,10 @@ class Employee extends Model
 {
     protected $table = 'employees';
 
+    public $timestamps = false;
+
     protected $fillable = [
-        'employeeId',
+        'employeeUID',
         'username',
         'password',
         'employeeName',
