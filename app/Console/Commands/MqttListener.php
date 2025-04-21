@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Providers\MqttService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use PhpMqtt\Client\Facades\MQTT;
 
 class MqttListener extends Command
@@ -20,29 +21,50 @@ class MqttListener extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Listen to MQTT messages....';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $mqtt = new MqttService();
+        $mqtt = new MqttService(); // Menggunakan MQTTService
 
-        $mqtt->subscribe('rfidTopic', function ($topic, $message) use ($mqtt){
-            echo "Pesan untuk topik $topic telah diterima: $message\n";
+        $mqtt->subscribe('rfidTopic', function ($topic, $message)
+        {
+            echo "Pesan dengan topik {$topic} telah diterima: {$message}\n";
 
+            //Pecah pesan JSON
+            $data = json_decode($message, true);
 
-        $data = json_decode($message, true);
+            //Cek apakah data valid
+            if (!$data || !isset($data['RFID_UID'], $data['Date'], $data['Time']))
+            {
+                echo "Data Tidak Valid\n";
+                return;
+            }
 
-        //Simpan ke database
-        DB::table('atendances')->insert([
-            'employeeId' => $data['RFID_UID'],
-            'date' => $data['Date'],
-            'day' => $data['day'],
-            'time' => $data['time'],
-        ]);
+            //Cek apakah engineer sudah terdaftar di database
+            $employee = DB::table('employees')
+                ->where('employeeUID', $data['RFID_UID'])
+                ->first();
+
+            if (!$employee){
+                echo "Data engineer tidak ditemukan\n";
+                return;
+            }
+
+            //Cek apakah absensi sudah dilakukan
+            $attendance = DB::table('attendances')
+                ->where('employeUID', $data['RFID_UID'])
+                ->where('date', $data['Date'])
+                ->where('time', $data['Time'])
+                ->first();
+
+           //Gunakan service untuk menanganani absensi
 
         });
     }
 }
+
+
