@@ -10,10 +10,13 @@ class Shifts extends Model
 
     protected $fillable = [
         'shiftId',
+        'shiftName',
         'shiftStart',
         'shiftEnd',
         'startDate',
-        'endDate'
+        'endDate',
+        'workHours',
+        'notes'
     ];
 
     //Relasi dengan Attedance

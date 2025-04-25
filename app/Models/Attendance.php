@@ -10,8 +10,9 @@ class Attendance extends Model
     protected $table = 'attendances';
 
     protected $fillable = [
-        'employeeId',
+        'employeeUID',
         'checkInTime',
+        'lateArrival',
         'checkOutTime',
         'status',
         'shiftId'
@@ -27,6 +28,11 @@ class Attendance extends Model
     public function shift(){
 
         return $this->belongsTo(Shifts::class);
+    }
+
+    public function permit(){
+
+        return $this->belongsTo(Permit::class);
     }
 }
 

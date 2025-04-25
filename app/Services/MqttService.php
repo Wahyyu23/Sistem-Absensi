@@ -1,5 +1,5 @@
 <?php
-namespace App\Providers;
+namespace App\Services;
 
 use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\ConnectionSettings;

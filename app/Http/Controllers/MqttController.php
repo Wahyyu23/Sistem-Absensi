@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Providers\MqttService;
+use App\Services\MqttService;
 
 
 class MqttController extends Controller
