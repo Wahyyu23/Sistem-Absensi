@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enum\AttendanceTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Services\PermitService;
 
 class AttendanceService
 {
@@ -18,6 +19,8 @@ class AttendanceService
 
             $attendanceTime = $attendanceTime->format('H:i:s');
             $maxAttendanceTime = $maxAttendanceTime->format('H:i:s');
+
+            $permits = new PermitService();
 
             try {
                 $lateArrival = $attendanceTime > $maxAttendanceTime ?
@@ -67,6 +70,7 @@ class AttendanceService
 
                 return DB::table('attendances')
                     ->where('employeeUID', $employeeUID)
+                    ->whereDate('checkInTime', $checkInTime)
                     ->update([
                         'checkOutTime' => $checkOutTime,
                         'shiftId' => $shiftId, //Masih manual

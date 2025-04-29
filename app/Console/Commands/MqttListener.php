@@ -8,6 +8,7 @@ use App\Services\ParsingTime;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Services\ShiftService;
+use App\Services\PermitService;
 use Carbon\Carbon;
 
 class MqttListener extends Command
@@ -66,6 +67,7 @@ class MqttListener extends Command
             // Deklarasikan service
             $attendanceService = new AttendanceService();
             $shiftService = new ShiftService();
+            $permitService = new PermitService();
 
             // Cek apakah absensi sudah dilakukan
             $attendance = DB::table('attendances')
@@ -81,14 +83,14 @@ class MqttListener extends Command
                             echo "Tap terlalu cepat. Tap diabaikan.\n";
                             return;
                         }
-
+                        echo "Update kepulangan \n";
                         // Update check-out
                         $updated = $attendanceService->update(
                             $UID,
                             $onlyDate,
                             $time,
                             $shiftService->getTapShift($time),
-                            $attendance->status
+                            $permitService->getPermitByEmployeeUID($UID, $onlyDate)
                         );
 
                         echo $updated
@@ -110,37 +112,6 @@ class MqttListener extends Command
                         ? "Data Absensi Masuk Telah Ditambahkan\n"
                         : "Gagal menambahkan data absensi masuk\n";
                 }
-
-
-            // if ($attendance && is_null($attendance->checkOutTime)) {
-            //     echo "Sudah melakukan absensi masuk\n";
-
-            //     if ($attendance && Carbon::parse($attendance->checkInTime)->diffInSeconds(Carbon::parse($time)) < 600) {
-            //         echo "Tap terlalu cepat. Tap diabaikan.\n";
-            //         return;
-            //     }
-            //     // Update check-out
-            //     $updated = $attendanceService->update(
-            //         $UID,
-            //         $onlyDate,
-            //         $time,
-            //         $shiftService->getTapShift($time),
-            //         $attendance->status
-            //     );
-
-            //     echo $updated
-            //         ? "Data Absensi Pulang Telah Ditambahkan\n"
-            //         : "Gagal menambahkan data absensi pulang\n";
-
-            // } else {
-            //     // Insert check-in
-            //     echo "Belum melakukan absensi masuk\n";
-            //     $inserted = $attendanceService->insert($UID, $time);
-
-            //     echo $inserted
-            //         ? "Data Absensi Masuk Telah Ditambahkan\n"
-            //         : "Gagal menambahkan data absensi masuk\n";
-            // }
         });
 
         // Jalankan loop MQTT
