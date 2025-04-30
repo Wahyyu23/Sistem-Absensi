@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule): void
     {
-        // Jadwal otomatis (opsional)
+        $schedule->command('app:attendance-auto-check')->weekdays()->at('16:50');
     }
 
     protected function commands(): void

@@ -17,6 +17,7 @@ class PermitService
         //Validasi data
         $validatedData = $request->validate([
             'employeeUID' => 'required|string|max:255',
+            'employeeName' => 'required|string|max:255',
             'attendanceId' => 'required|integer',
             'permitType' => 'required|string|max:255',
             'startDate' => 'required|date',

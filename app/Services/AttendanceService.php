@@ -6,10 +6,12 @@ use App\Enum\AttendanceTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Services\PermitService;
+use App\Services\GetDataEmployees;
+use App\Models\Employee;
 
 class AttendanceService
 {
-    public function insert($employeeUID, $checkInTime)
+    public function insert($employeeUID, $checkInTime,$employeeName)
     {
         try {
             echo "Memasukkan data kedatangan ke database....\n";
@@ -31,9 +33,14 @@ class AttendanceService
                 echo "Error: " . $e->getMessage();
                 return false; // or handle the error as needed
             }
+
+            $name = new GetDataEmployees();
+
+
             try {
                 return DB::table('attendances')->insert([
                     'employeeUID' => $employeeUID,
+                    'employeeName' => $employeeName,
                     'checkInTime' => $checkInTime,
                     'lateArrival' => $lateArrival,//$lateArrival,
                     'checkOutTime' => null,

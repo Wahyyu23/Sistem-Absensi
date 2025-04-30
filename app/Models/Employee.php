@@ -30,4 +30,18 @@ class Employee extends Model
 
         return $this->hasMany(Attendance::class);
     }
+
+    public function permits(){
+
+        return $this->hasMany(Permit::class);
+    }
+
+    public function getUID()
+    {
+        return $this->employeeUID;
+    }
+    public function getName()
+    {
+        return $this->attributes['employeeName'];
+    }
 }

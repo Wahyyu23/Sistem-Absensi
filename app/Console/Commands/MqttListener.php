@@ -57,12 +57,15 @@ class MqttListener extends Command
             // Cek apakah engineer sudah terdaftar di database
             $employee = DB::table('employees')->where('employeeUID', $UID)->first();
 
+
             if ($employee) {
                 echo $employee->employeeName . " sudah terdaftar\n";
             } else {
                 echo "Engineer dengan UID {$UID} tidak terdaftar\n";
                 return;
             }
+
+
 
             // Deklarasikan service
             $attendanceService = new AttendanceService();
@@ -106,7 +109,7 @@ class MqttListener extends Command
                     // Belum ada data absensi hari ini → tap masuk
                     echo "Belum melakukan absensi masuk\n";
 
-                    $inserted = $attendanceService->insert($UID, $time);
+                    $inserted = $attendanceService->insert($UID, $time, $employee->employeeName);
 
                     echo $inserted
                         ? "Data Absensi Masuk Telah Ditambahkan\n"
