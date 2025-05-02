@@ -15,25 +15,21 @@ class AttendanceService
     {
         try {
             echo "Memasukkan data kedatangan ke database....\n";
-            $maxAttendanceTime = Carbon::parse(AttendanceTime::CheckIn->value);
             $attendanceTime = Carbon::parse($checkInTime);
 
+            //Gabung dengan kedatagan hari ini
+            $maxAttendanceTime = Carbon::parse($attendanceTime)->format('Y-m-d') . ' ' .AttendanceTime::CheckIn->value;
 
-            $attendanceTime = $attendanceTime->format('H:i:s');
-            $maxAttendanceTime = $maxAttendanceTime->format('H:i:s');
-
-            $permits = new PermitService();
-
-            try {
-                $lateArrival = $attendanceTime > $maxAttendanceTime ?
-                    Carbon::parse($attendanceTime)->diffInMinutes(Carbon::parse($maxAttendanceTime))  //Harus jadi fungsi tersendiri
-                    : 0;
-            } catch (\Exception $e) {
-                // Handle the exception
-                echo "Error: " . $e->getMessage();
-                return false; // or handle the error as needed
+            $diffInSeconds = $attendanceTime->diffInSeconds($maxAttendanceTime, true);
+            if ($diffInSeconds > 0) {
+                $minutes = floor($diffInSeconds / 60);
+                $seconds = $diffInSeconds % 60;
+                $lateArrival = "{$minutes} menit {$seconds} detik";
+            }else {
+                $lateArrival = "On Time";
             }
 
+            $permits = new PermitService();
             $name = new GetDataEmployees();
 
 
