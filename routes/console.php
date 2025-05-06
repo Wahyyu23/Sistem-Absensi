@@ -10,6 +10,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('app:mqtt-listener', function () {
-    (new MqttListener)->handle();
-})->purpose('Listen and process incoming MQTT messages');
+// Artisan::command('app:mqtt-listener', function () {
+//     (new MqttListener)->handle();
+// })->purpose('Listen and process incoming MQTT messages');

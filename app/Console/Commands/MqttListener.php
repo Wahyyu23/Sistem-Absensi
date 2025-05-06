@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Services\EmployeesService;
 use App\Services\MqttService;
 use App\Services\AttendanceService;
 use App\Services\ParsingTime;
+use Database\Seeders\EmployeeSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Services\ShiftService;
@@ -30,11 +32,37 @@ class MqttListener extends Command
     /**
      * Execute the console command.
      */
+
+    protected $mqttservice;
+    protected $employeeservice;
+    protected $shiftservice;
+    protected $permitservice;
+    protected $attendanceservice;
+
+    public function __construct(
+        MqttService $mqttservice,
+        AttendanceService $attendanceservice,
+        EmployeesService $employeeservice,
+        ShiftService $shiftservice,
+        PermitService $permitservice
+    ){
+        parent::__construct();
+
+        $this->mqttservice = $mqttservice;
+        $this->attendanceservice = $attendanceservice;
+        $this->employeeservice = $employeeservice;
+        $this->shiftservice = $shiftservice;
+        $this->permitservice = $permitservice;
+    }
+
+
     public function handle()
     {
-        $mqtt = new MqttService();
+        //$mqtt = new MqttService();
 
-        $mqtt->subscribe('rfidTopic', function ($topic, $message) {
+
+
+        $this->mqttservice->subscribe('rfidTopic', function ($topic, $message) {
             echo "Pesan dengan topik {$topic} telah diterima: {$message}\n";
 
             // Pecah pesan JSON
@@ -47,14 +75,25 @@ class MqttListener extends Command
             }
 
             $UID = $data['RFID_UID'];
-            $time = Carbon::parse($data['Time'])->format('Y-m-d H:i:s');
-            $onlyTime = Carbon::parse($data['Time'])->format('H:i:s');
-            $onlyDate = Carbon::parse($data['Time'])->format('Y-m-d');
+            //echo "UID: {$UID}\n";
+            $time = $this->attendanceservice->parseIntoCarbonComplete($data['Time']);
+            $onlyDate = $this->attendanceservice->parseIntoCarbonYearMonthDay($data['Time']);
 
-            echo "UID: {$UID}\n";
-            echo "Time: {$time}\n";
+
+        try{
+            $employeeName = $this->employeeservice->getNameEmployees($UID);
+        }catch (\Exception $e){
+            echo "Error ambil data pegawai: " . $e->getMessage() . "\n";
+            return false;
+        }
+            // echo "Nama: {$employeeName}\n";
+            // var_dump($employeeName);
+
+            // echo "UID: {$UID}\n";
+            // echo "Time: {$time}\n";
 
             // Cek apakah engineer sudah terdaftar di database
+
             $employee = DB::table('employees')->where('employeeUID', $UID)->first();
 
 
@@ -68,9 +107,9 @@ class MqttListener extends Command
 
 
             // Deklarasikan service
-            $attendanceService = new AttendanceService();
-            $shiftService = new ShiftService();
-            $permitService = new PermitService();
+            // $attendanceService = new AttendanceService();
+            // $shiftService = new ShiftService();
+            // $permitService = new PermitService();
 
             // Cek apakah absensi sudah dilakukan
             $attendance = DB::table('attendances')
@@ -88,12 +127,12 @@ class MqttListener extends Command
                         }
                         echo "Update kepulangan \n";
                         // Update check-out
-                        $updated = $attendanceService->update(
+                        $updated = $this->attendanceservice->update(
                             $UID,
                             $onlyDate,
                             $time,
-                            $shiftService->getTapShift($time),
-                            $permitService->getPermitByEmployeeUID($UID, $onlyDate)
+                            $this->shiftservice->getTapShift($time),
+                            $this->permitservice->getPermitByEmployeeUID($UID, $onlyDate)
                         );
 
                         echo $updated
@@ -109,7 +148,7 @@ class MqttListener extends Command
                     // Belum ada data absensi hari ini → tap masuk
                     echo "Belum melakukan absensi masuk\n";
 
-                    $inserted = $attendanceService->insert($UID, $time, $employee->employeeName);
+                    $inserted = $this->attendanceservice->insert($UID, $time, $employee->employeeName);
 
                     echo $inserted
                         ? "Data Absensi Masuk Telah Ditambahkan\n"
@@ -118,6 +157,6 @@ class MqttListener extends Command
         });
 
         // Jalankan loop MQTT
-        $mqtt->loopForever();
+        $this->mqttservice->loopForever();
     }
 }

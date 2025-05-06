@@ -40,8 +40,9 @@ class Employee extends Model
     {
         return $this->employeeUID;
     }
-    public function getName()
+    public static function getNamebyUID($uid)
     {
-        return $this->attributes['employeeName'];
+        return self::where('employeeUID', $uid)->first();
     }
+
 }

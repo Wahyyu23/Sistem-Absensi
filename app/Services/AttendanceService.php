@@ -6,11 +6,33 @@ use App\Enum\AttendanceTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Services\PermitService;
-use App\Services\GetDataEmployees;
+use App\Services\EmployeesService;
 use App\Models\Employee;
 
 class AttendanceService
 {
+    //Pendefinisian variabel untuk konstruktor
+    // protected $mqttservice;
+    // protected $employeeservice;
+    // protected $shiftservice;
+    // protected $permitservice;
+
+    // public function __construct(
+
+    //     MqttService $mqttservice,
+    //     EmployeesService $employeeservice,
+    //     ShiftService $shiftservice,
+    //     PermitService $permitservice
+    // )
+    // {
+    //    //parent::__construct();
+    //    $this->mqttservice = $mqttservice;
+    //    $this->employeeservice = $employeeservice;
+    //    $this->shiftservice = $shiftservice;
+    //    $this->permtservice = $permitservice;
+    // }
+
+
     public function insert($employeeUID, $checkInTime,$employeeName)
     {
         try {
@@ -30,7 +52,7 @@ class AttendanceService
             }
 
             $permits = new PermitService();
-            $name = new GetDataEmployees();
+
 
 
             try {
@@ -84,5 +106,26 @@ class AttendanceService
             echo "Error:" . $e->getMessage();
             return false;
         }
+    }
+
+    public function parseIntoCarbonComplete($datetime)
+    {
+        try{
+            $time = Carbon::parse($datetime)->format('Y-m-d H:i:s');
+        }catch(\Exception $e)
+        {
+            echo "Gagal mengubah format carbon untuk format data mqtt Y-m-d H:i:s\n" . $e->getMessage();
+        }
+        return $time;
+    }
+
+    public function parseIntoCarbonYearMonthDay($datetime){
+        try{
+            $time = Carbon::parse($datetime)->format('Y-m-d');
+        }catch(\Exception $e)
+        {
+            echo "Gagal mengubah format carbon untuk format data mqtt Y-m-d\n" . $e->getMessage();
+        }
+        return $time;
     }
 }

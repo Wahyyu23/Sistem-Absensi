@@ -9,7 +9,7 @@ use App\Console\Commands\MqttListener;
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
-        MqttListener::class,
+        App\Console\Commands\MqttListener::class,
     ];
 
     protected function schedule(Schedule $schedule): void
