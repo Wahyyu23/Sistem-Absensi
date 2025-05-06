@@ -6,13 +6,14 @@ use App\Enum\AttendanceTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Services\PermitService;
+use App\Models\Attendance;
 use App\Services\EmployeesService;
 use App\Models\Employee;
 
 class AttendanceService
 {
     //Pendefinisian variabel untuk konstruktor
-    // protected $mqttservice;
+    protected $attendance;
     // protected $employeeservice;
     // protected $shiftservice;
     // protected $permitservice;
@@ -31,7 +32,10 @@ class AttendanceService
     //    $this->shiftservice = $shiftservice;
     //    $this->permtservice = $permitservice;
     // }
-
+    public function __construct(Attendance $attendance)
+    {
+        $this->attendance = $attendance;
+    }
 
     public function insert($employeeUID, $checkInTime,$employeeName)
     {
@@ -127,5 +131,10 @@ class AttendanceService
             echo "Gagal mengubah format carbon untuk format data mqtt Y-m-d\n" . $e->getMessage();
         }
         return $time;
+    }
+
+    public function checkAttendance($employeeUID, $attendanceTime)
+    {
+        return $this->attendance->getAttendance($employeeUID, $attendanceTime);
     }
 }

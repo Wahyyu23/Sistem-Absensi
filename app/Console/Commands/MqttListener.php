@@ -45,7 +45,7 @@ class MqttListener extends Command
         EmployeesService $employeeservice,
         ShiftService $shiftservice,
         PermitService $permitservice
-    ){
+    ) {
         parent::__construct();
 
         $this->mqttservice = $mqttservice;
@@ -80,80 +80,62 @@ class MqttListener extends Command
             $onlyDate = $this->attendanceservice->parseIntoCarbonYearMonthDay($data['Time']);
 
 
-        try{
-            $employeeName = $this->employeeservice->getNameEmployees($UID);
-        }catch (\Exception $e){
-            echo "Error ambil data pegawai: " . $e->getMessage() . "\n";
-            return false;
-        }
-            // echo "Nama: {$employeeName}\n";
-            // var_dump($employeeName);
-
-            // echo "UID: {$UID}\n";
-            // echo "Time: {$time}\n";
-
-            // Cek apakah engineer sudah terdaftar di database
-
-            $employee = DB::table('employees')->where('employeeUID', $UID)->first();
-
-
-            if ($employee) {
-                echo $employee->employeeName . " sudah terdaftar\n";
+            try {
+                $employeeName = $this->employeeservice->getNameEmployees($UID);
+            } catch (\Exception $e) {
+                echo "Error ambil data pegawai: " . $e->getMessage() . "\n";
+                return false;
+            }
+            if ($employeeName) {
+                echo $employeeName->employeeName . " sudah terdaftar\n";
             } else {
                 echo "Engineer dengan UID {$UID} tidak terdaftar\n";
                 return;
             }
+            try {
+                $attendance = $this->attendanceservice->checkAttendance($UID, $onlyDate);
+            } catch (\Exception $e) {
+                echo "Error ambil data absensi: " . $e->getMessage() . "\n";
+                return false;
+            }
+            if ($attendance) {
+                if (is_null($attendance->checkOutTime)) {
+                    echo "Sudah melakukan absensi masuk\n";
 
-
-
-            // Deklarasikan service
-            // $attendanceService = new AttendanceService();
-            // $shiftService = new ShiftService();
-            // $permitService = new PermitService();
-
-            // Cek apakah absensi sudah dilakukan
-            $attendance = DB::table('attendances')
-                ->where('employeeUID', $UID)
-                ->whereDate('checkInTime', $onlyDate)
-                ->first();
-                if ($attendance) {
-                    if (is_null($attendance->checkOutTime)) {
-                        echo "Sudah melakukan absensi masuk\n";
-
-                        // Cegah tap terlalu cepat
-                        if (Carbon::parse($attendance->checkInTime)->diffInSeconds(Carbon::parse($time)) < 600) {
-                            echo "Tap terlalu cepat. Tap diabaikan.\n";
-                            return;
-                        }
-                        echo "Update kepulangan \n";
-                        // Update check-out
-                        $updated = $this->attendanceservice->update(
-                            $UID,
-                            $onlyDate,
-                            $time,
-                            $this->shiftservice->getTapShift($time),
-                            $this->permitservice->getPermitByEmployeeUID($UID, $onlyDate)
-                        );
-
-                        echo $updated
-                            ? "Data Absensi Pulang Telah Ditambahkan\n"
-                            : "Gagal menambahkan data absensi pulang\n";
-
-                    } else {
-                        // Sudah check-in dan check-out
-                        echo "Engineer sudah absen lengkap hari ini (masuk & pulang). Tap diabaikan.\n";
+                    // Cegah tap terlalu cepat
+                    if (Carbon::parse($attendance->checkInTime)->diffInSeconds(Carbon::parse($time)) < 600) {
+                        echo "Tap terlalu cepat. Tap diabaikan.\n";
                         return;
                     }
+                    echo "Update kepulangan \n";
+                    // Update check-out
+                    $updated = $this->attendanceservice->update(
+                        $UID,
+                        $onlyDate,
+                        $time,
+                        $this->shiftservice->getTapShift($time),
+                        $this->permitservice->getPermitByEmployeeUID($UID, $onlyDate)
+                    );
+
+                    echo $updated
+                        ? "Data Absensi Pulang Telah Ditambahkan\n"
+                        : "Gagal menambahkan data absensi pulang\n";
+
                 } else {
-                    // Belum ada data absensi hari ini → tap masuk
-                    echo "Belum melakukan absensi masuk\n";
-
-                    $inserted = $this->attendanceservice->insert($UID, $time, $employee->employeeName);
-
-                    echo $inserted
-                        ? "Data Absensi Masuk Telah Ditambahkan\n"
-                        : "Gagal menambahkan data absensi masuk\n";
+                    // Sudah check-in dan check-out
+                    echo "Engineer sudah absen lengkap hari ini (masuk & pulang). Tap diabaikan.\n";
+                    return;
                 }
+            } else {
+                // Belum ada data absensi hari ini → tap masuk
+                echo "Belum melakukan absensi masuk\n";
+
+                $inserted = $this->attendanceservice->insert($UID, $time, $employeeName->employeeName);
+
+                echo $inserted
+                    ? "Data Absensi Masuk Telah Ditambahkan\n"
+                    : "Gagal menambahkan data absensi masuk\n";
+            }
         });
 
         // Jalankan loop MQTT

@@ -19,20 +19,30 @@ class Attendance extends Model
     ];
 
     //Relasi dengan employye
-    public function employee(){
+    public function employee()
+    {
 
         return $this->belongsTo(Employee::class);
     }
 
     //Relasi dengan shift
-    public function shift(){
+    public function shift()
+    {
 
         return $this->belongsTo(Shifts::class);
     }
 
-    public function permit(){
+    public function permit()
+    {
 
         return $this->belongsTo(Permit::class);
+    }
+
+    public function getAttendance($employeeUID, $attendanceTime)
+    {
+        return self::where('employeeUID', $employeeUID)
+            ->whereDate('checkInTime', $attendanceTime)
+            ->first();
     }
 }
 
