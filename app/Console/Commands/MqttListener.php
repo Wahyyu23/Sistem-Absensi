@@ -15,23 +15,11 @@ use Carbon\Carbon;
 
 class MqttListener extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+
     protected $signature = 'app:mqtt-listener';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Listen to MQTT messages....';
 
-    /**
-     * Execute the console command.
-     */
 
     protected $mqttservice;
     protected $employeeservice;
@@ -58,10 +46,6 @@ class MqttListener extends Command
 
     public function handle()
     {
-        //$mqtt = new MqttService();
-
-
-
         $this->mqttservice->subscribe('rfidTopic', function ($topic, $message) {
             echo "Pesan dengan topik {$topic} telah diterima: {$message}\n";
 
@@ -75,7 +59,6 @@ class MqttListener extends Command
             }
 
             $UID = $data['RFID_UID'];
-            //echo "UID: {$UID}\n";
             $time = $this->attendanceservice->parseIntoCarbonComplete($data['Time']);
             $onlyDate = $this->attendanceservice->parseIntoCarbonYearMonthDay($data['Time']);
 
@@ -102,13 +85,11 @@ class MqttListener extends Command
                 if (is_null($attendance->checkOutTime)) {
                     echo "Sudah melakukan absensi masuk\n";
 
-                    // Cegah tap terlalu cepat
                     if (Carbon::parse($attendance->checkInTime)->diffInSeconds(Carbon::parse($time)) < 600) {
                         echo "Tap terlalu cepat. Tap diabaikan.\n";
                         return;
                     }
                     echo "Update kepulangan \n";
-                    // Update check-out
                     $updated = $this->attendanceservice->update(
                         $UID,
                         $onlyDate,
@@ -122,12 +103,10 @@ class MqttListener extends Command
                         : "Gagal menambahkan data absensi pulang\n";
 
                 } else {
-                    // Sudah check-in dan check-out
                     echo "Engineer sudah absen lengkap hari ini (masuk & pulang). Tap diabaikan.\n";
                     return;
                 }
             } else {
-                // Belum ada data absensi hari ini → tap masuk
                 echo "Belum melakukan absensi masuk\n";
 
                 $inserted = $this->attendanceservice->insert($UID, $time, $employeeName->employeeName);
@@ -138,7 +117,6 @@ class MqttListener extends Command
             }
         });
 
-        // Jalankan loop MQTT
         $this->mqttservice->loopForever();
     }
 }

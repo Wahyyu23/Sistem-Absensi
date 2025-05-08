@@ -12,26 +12,7 @@ use App\Models\Employee;
 
 class AttendanceService
 {
-    //Pendefinisian variabel untuk konstruktor
     protected $attendance;
-    // protected $employeeservice;
-    // protected $shiftservice;
-    // protected $permitservice;
-
-    // public function __construct(
-
-    //     MqttService $mqttservice,
-    //     EmployeesService $employeeservice,
-    //     ShiftService $shiftservice,
-    //     PermitService $permitservice
-    // )
-    // {
-    //    //parent::__construct();
-    //    $this->mqttservice = $mqttservice;
-    //    $this->employeeservice = $employeeservice;
-    //    $this->shiftservice = $shiftservice;
-    //    $this->permtservice = $permitservice;
-    // }
     public function __construct(Attendance $attendance)
     {
         $this->attendance = $attendance;
@@ -42,11 +23,16 @@ class AttendanceService
         try {
             echo "Memasukkan data kedatangan ke database....\n";
             $attendanceTime = Carbon::parse($checkInTime);
+            //$attendanceTimeYearMonthDay = Carbon::parse($checkInTime)->format('Y-m-d');
 
-            //Gabung dengan kedatagan hari ini
-            $maxAttendanceTime = Carbon::parse($attendanceTime)->format('Y-m-d') . ' ' .AttendanceTime::CheckIn->value;
+            $workHour = Carbon::parse($attendanceTime)->format('Y-m-d') . ' ' .AttendanceTime::CheckIn->value;
+            $maxAttendanceTime = Carbon::parse($workHour);
+            echo $maxAttendanceTime . "\n";
+            echo $attendanceTime . "\n";
 
-            $diffInSeconds = $attendanceTime->diffInSeconds($maxAttendanceTime, true);
+            $diffInSeconds = $maxAttendanceTime->diffInSeconds($attendanceTime, false);
+
+            echo $diffInSeconds . "\n";
             if ($diffInSeconds > 0) {
                 $minutes = floor($diffInSeconds / 60);
                 $seconds = $diffInSeconds % 60;
@@ -54,10 +40,6 @@ class AttendanceService
             }else {
                 $lateArrival = "On Time";
             }
-
-            $permits = new PermitService();
-
-
 
             try {
                 return DB::table('attendances')->insert([
