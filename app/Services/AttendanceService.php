@@ -109,4 +109,44 @@ class AttendanceService
     {
         return $this->attendance->getAttendance($employeeUID, $attendanceTime);
     }
+
+    public function getAllAttendance()
+    {
+        try {
+            return $this->attendance->getAllAttendance();
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Kesalahan saat mengambil data',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function searchAttendance($employeeName, $date)
+    {
+        try {
+            $attendance = DB::table('attendances') //Masuk ke Model
+                ->where('employeeName', 'like', '%' . $employeeName . '%')
+                ->whereDate('checkInTime', $date)
+                ->get();
+
+            if ($attendance->isEmppty()) {
+                return response()->json([
+                    'status' => 'Data absen tidak ditemukan',
+                    'data' => []
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 'Data absen berhasil ditemukan',
+                    'data' => $attendance
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Kesalahan saat mencari data',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }
+

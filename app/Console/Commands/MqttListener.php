@@ -72,7 +72,9 @@ class MqttListener extends Command
             if ($employeeName) {
                 echo $employeeName->employeeName . " sudah terdaftar\n";
             } else {
-                echo "Engineer dengan UID {$UID} tidak terdaftar\n";
+                $notification = "Engineer dengan UID {$UID} tidak terdaftar\n";
+                echo $notification;
+                $this->mqttservice->publish('attendance', $notification);
                 return;
             }
             try {
@@ -86,7 +88,9 @@ class MqttListener extends Command
                     echo "Sudah melakukan absensi masuk\n";
 
                     if (Carbon::parse($attendance->checkInTime)->diffInSeconds(Carbon::parse($time)) < 600) {
-                        echo "Tap terlalu cepat. Tap diabaikan.\n";
+                        $notification = "Tap terlalu cepat. Tap diabaikan.\n";
+                        echo $notification;
+                        $this->mqttservice->publish('attendance', $notification);
                         return;
                     }
                     echo "Update kepulangan \n";
@@ -98,12 +102,21 @@ class MqttListener extends Command
                         $this->permitservice->getPermitByEmployeeUID($UID, $onlyDate)
                     );
 
-                    echo $updated
-                        ? "Data Absensi Pulang Telah Ditambahkan\n"
-                        : "Gagal menambahkan data absensi pulang\n";
+
+                    if ($updated) {
+                        $notification = "Data Pulang {$employeeName->employeeName} telah diupdate\n";
+                        echo $notification;
+                        $this->mqttservice->publish('attendance', $notification);
+                    } else {
+                        $notification = "Gagal menambahkan data absensi pulang {$employeeName->employeeName}\n";
+                        echo $notification;
+                        $this->mqttservice->publish('attendance', $notification);
+                    }
 
                 } else {
-                    echo "Engineer sudah absen lengkap hari ini (masuk & pulang). Tap diabaikan.\n";
+                    $notification = "Engineer sudah absen lengkap hari ini (masuk & pulang). Tap diabaikan.\n";
+                    echo $notification;
+                    $this->mqttservice->publish('attendance', $notification);
                     return;
                 }
             } else {
@@ -111,9 +124,15 @@ class MqttListener extends Command
 
                 $inserted = $this->attendanceservice->insert($UID, $time, $employeeName->employeeName);
 
-                echo $inserted
-                    ? "Data Absensi Masuk Telah Ditambahkan\n"
-                    : "Gagal menambahkan data absensi masuk\n";
+                if ($inserted) {
+                    $notification = "Data Masuk {$employeeName->employeeName} telah ditambahkan\n";
+                    echo $notification;
+                    $this->mqttservice->publish('attendance', $notification);
+                } else {
+                    $notification = "Gagal menambahkan data absensi masuk {$employeeName->employeeName}\n";
+                    echo $notification;
+                    $this->mqttservice->publish('attendance', $notification);
+                }
             }
         });
 

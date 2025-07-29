@@ -9,6 +9,7 @@ class MqttService{
     protected $client;
     protected $connectionSettings;
     protected $clientId;
+    protected $connected = false;
 
 
     public function __construct()
@@ -30,27 +31,41 @@ class MqttService{
 
     public function connect()
     {
-        $this->client->connect($this->connectionSettings, true);
+        if(!$this->connected) {
+           $this->client->connect($this->connectionSettings, true);
+           $this->connected = true;
+        }
+
+        //$this->client->connect($this->connectionSettings, true);
     }
 
     public function disconnect()
     {
-        $this->client->disconnect();
+        if($this->connected){
+           $this->client->disconnect();
+           $this->connected = false;
+        }
+        //$this->client->disconnect();
     }
 
     public function publish($topic, $message)
     {
+        // if(!$this->client->connect()){
+        //     $this->connect();
+        // }
         $this->connect();
         $this->client->publish($topic, $message, MqttClient::QOS_AT_MOST_ONCE);
-        $this->client->disconnect();
     }
 
 
     public function subscribe($topic, $callback)
     {
+        // if(!$this->client->connect()){
+        //     $this->connect();
+        // }
         $this->connect();
         $this->client->subscribe($topic, function ($topic, $message) use ($callback) {
-            $callback($topic, $message);
+        $callback($topic, $message);
         });
     }
 

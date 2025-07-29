@@ -40,11 +40,9 @@ class Attendance extends Model
         return $this->belongsTo(Permit::class);
     }
 
-    public function getAttendance($employeeUID, $attendanceTime)
+    public function getAllAttendance()
     {
-        return self::where('employeeUID', $employeeUID)
-            ->whereDate('checkInTime', $attendanceTime)
-            ->first();
+        return self::all();
     }
 
     public function checkAttendance($employeeUID, $checkInTime)

@@ -3,42 +3,83 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\employee;
+use App\Models\Employee;
+use App\Services\EmployeesService;
 use Illuminate\Http\Request;
 
 
 
 class EmployeeController extends Controller
 {
-    public function index()
+    protected $employeeService;
+
+    public function __construct(EmployeesService $employeeService)
     {
-        //return response()->json(employee::all(), 200);
-        return Employee::all();
+        $this->employeeService = $employeeService;
     }
-
-    public function store(Request $request)
+    public function showEmployee()
     {
-        //$user = employee::create($request->all());
-        //return response()->json($user, 201);
+        try {
+            $response = $this->employeeService->getAllEmployees();
 
-        return Employee::create($request->all());
+            return response()->json([
+                'status' => 'success',
+                'data' => $response
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Kesalahan saat mengambil data',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
-    public function show($id)
+    public function updateEmployee()
     {
-        //return response()->json(employee::find($id), 200);
-        return Employee::find($id);
+        try {
+            $response = $this->employeeService->updateEmployee(
+                request('id'),
+                request('uid'),
+                request('username'),
+                request('password'),
+                request('employeeName'),
+                request('dateOfBirth'),
+                request('employeePhone'),
+                request('employeeEmail'),
+                request('profilePicture'),
+                request('position'),
+                request('department'),
+                request('hireDate'),
+                request('terminationDate')
+            );
+            return response()->json([
+                'status' => 'success',
+                'data' => $response
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Kesalahan saat mengupdat data',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
-    public function update(Request $request, $id){
-        $employee = Employee::find($id);
-        $employee->update($request->all());
+    public function deleteEmployee($id)
+    {
+        try {
+            $employee = Employee::findOrFail($id);
+            $employee->delete();
 
-        return $employee;
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data pegawai berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Kesalahan saat menghapus data',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
-    public function destroy($id)
-{
-        return Employee::destroy($id);
-}
 }
